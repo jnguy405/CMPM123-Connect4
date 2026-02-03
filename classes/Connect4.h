@@ -1,0 +1,34 @@
+#pragma once
+#include "Game.h"
+
+class Connect4 : public Game
+{
+public:
+    Connect4() {}
+    ~Connect4() {}
+
+    // set up the board
+    void        setUpBoard() override;
+
+    bool        actionForEmptyHolder(BitHolder &holder) override;
+    bool        canBitMoveFrom(Bit &bit, BitHolder &src) override;
+    bool        canBitMoveFromTo(Bit &bit, BitHolder &src, BitHolder &dst) override;
+    void        stopGame() override;
+
+    Player*     checkForWinner() override;
+    bool        checkForDraw() override;
+    std::string initialStateString() override { return ""; }
+    std::string stateString() override { return ""; }
+    void        setStateString(const std::string &s) override {}
+
+    void        updateAI() override;
+    bool        gameHasAI() override { return true; }
+    BitHolder*  &getHolderAt(const int x, const int y);
+    
+private:
+    Bit*        PieceForPlayer(const int playerNumber);
+    Player*     ownerAt(int index ) const;
+    bool        aiTestForTerminalState(std::string& state, Player*& winner);
+    int         aiBoardEvaluation(const std::string& state);
+    void        negamax(std::string& state, int depth, int playerColor);
+};

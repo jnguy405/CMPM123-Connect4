@@ -6,7 +6,7 @@ void ChessSquare::initHolder(const ImVec2 &position, const char *spriteName, con
     _column = column;
     _row = row;
     int odd = (column + row) % 2;
-    ImVec4 color = odd ? ImVec4(0.93, 0.93, 0.84, 1.0) : ImVec4(0.48, 0.58, 0.36, 1.0);
+    ImVec4 color = odd ? ImVec4(0.93f, 0.93f, 0.84f, 1.0f) : ImVec4(0.48f, 0.58f, 0.36f, 1.0f);
     BitHolder::initHolder(position, color, spriteName);
     setSize(80, 80);
 }
@@ -51,10 +51,10 @@ void ChessSquare::setHighlighted(bool highlighted)
 {
     Sprite::setHighlighted(highlighted);
     int odd = (_column + _row) % 2;
-    _color = odd ? ImVec4(0.93, 0.93, 0.84, 1.0) : ImVec4(0.48, 0.58, 0.36, 1.0);
+    _color = odd ? ImVec4(0.93f, 0.93f, 0.84f, 1.0f) : ImVec4(0.48f, 0.58f, 0.36f, 1.0f);
     if (highlighted)
     {
-        _color = odd ? ImVec4(0.48, 0.58, 0.36, 1.0) : ImVec4(0.93, 0.93, 0.84, 1.0);
-        _color = Lerp(_color, ImVec4(0.75, 0.79, 0.30, 1.0), 0.75);
+        _color = odd ? ImVec4(0.48f, 0.58f, 0.36f, 1.0f) : ImVec4(0.93f, 0.93f, 0.84f, 1.0f);
+        _color = Lerp(_color, ImVec4(0.75f, 0.79f, 0.30f, 1.0f), 0.75f);
     }
 }
