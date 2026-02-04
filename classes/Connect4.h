@@ -23,9 +23,10 @@ public:
 
     void        updateAI() override;
     bool        gameHasAI() override { return true; }
-    BitHolder*  &getHolderAt(const int x, const int y);
+    Grid*       getGrid() override { return _grid; }
     
 private:
+    Grid*       _grid;
     Bit*        PieceForPlayer(const int playerNumber);
     Player*     ownerAt(int index ) const;
     bool        aiTestForTerminalState(std::string& state, Player*& winner);
