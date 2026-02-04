@@ -164,7 +164,7 @@ int Connect4::aiBoardEvaluation(const std::string& state)
     return 0;
 }
 
-void Connect4::negamax(std::string& state, int depth, int playerColor)
+int Connect4::negamax(std::string& state, int depth, int playerColor)
 {
     // check for winner or draw
     // if terminal state return evaluation score

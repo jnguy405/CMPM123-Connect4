@@ -4,8 +4,8 @@
 class Connect4 : public Game
 {
 public:
-    Connect4() {}
-    ~Connect4() {}
+    Connect4();
+    ~Connect4();
 
     // set up the board
     void        setUpBoard() override;
@@ -17,19 +17,20 @@ public:
 
     Player*     checkForWinner() override;
     bool        checkForDraw() override;
-    std::string initialStateString() override { return ""; }
-    std::string stateString() override { return ""; }
-    void        setStateString(const std::string &s) override {}
+    std::string initialStateString() override;
+    std::string stateString() override;
+    void        setStateString(const std::string &s) override;
 
     void        updateAI() override;
-    bool        gameHasAI() override { return true; }
+    bool        gameHasAI() override;
     Grid*       getGrid() override { return _grid; }
     
 private:
     Grid*       _grid;
+    int         _bestMoveColumn;  // For AI: stores best column from negamax
     Bit*        PieceForPlayer(const int playerNumber);
     Player*     ownerAt(int index ) const;
     bool        aiTestForTerminalState(std::string& state, Player*& winner);
     int         aiBoardEvaluation(const std::string& state);
-    void        negamax(std::string& state, int depth, int playerColor);
+    int         negamax(std::string& state, int depth, int playerColor);
 };
