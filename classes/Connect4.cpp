@@ -1,12 +1,12 @@
 #include "Connect4.h"
 
-
-const int CONNECT4_ROWS = 6;
 const int CONNECT4_COLS = 7;
+const int CONNECT4_ROWS = 6;
 
-Connect4::Connect4()
+Connect4::Connect4() : Game()
 {
     _grid = new Grid(CONNECT4_COLS, CONNECT4_ROWS);
+    _bestMoveColumn = 0;
 }
 
 Connect4::~Connect4()
@@ -14,12 +14,9 @@ Connect4::~Connect4()
     delete _grid;
 }
 
-
 Bit* Connect4::PieceForPlayer(const int playerNumber)
 {
-    // depending on playerNumber load the "red.png" or the "yellow.png" graphic
-    Bit *bit = new Bit();
-    // should possibly be cached from player class?
+    Bit* bit = new Bit();
     bit->LoadTextureFromFile(playerNumber == 0 ? "red.png" : "yellow.png");
     bit->setOwner(getPlayerAt(playerNumber));
     return bit;
@@ -28,83 +25,166 @@ Bit* Connect4::PieceForPlayer(const int playerNumber)
 void Connect4::setUpBoard()
 {
     setNumberOfPlayers(2);
-    _gameOptions.rowX = CONNECT4_ROWS;
-    _gameOptions.rowY = CONNECT4_COLS;
+    _gameOptions.rowX = CONNECT4_COLS;
+    _gameOptions.rowY = CONNECT4_ROWS;
     
-    // Initialize each square in the grid
-    for (int y = 0; y < CONNECT4_ROWS; y++)
-    {
-        for (int x = 0; x < CONNECT4_COLS; x++)
-        {
-            ImVec2 position(100.0f + x * 90.0f, 100.0f + y * 90.0f);
-            ChessSquare* square = _grid->getSquare(x, y);
-            if (square) {
-                square->initHolder(position, "", x, y);
-            }
-        }
-    }
-    return;
+    // Initialize all squares with proper positioning - all squares enabled (like TicTacToe, not checkerboard)
+    _grid->initializeSquares(80.0f, "square.png");
+
+    startGame();
 }
 
+// Gravity: pieces drop to the lowest empty row in a column
 bool Connect4::actionForEmptyHolder(BitHolder &holder) {
-    // check for null holder
+    ChessSquare* square = static_cast<ChessSquare*>(&holder);
+    if (!square) return false;
 
-    // get current player index
+    int col = square->getColumn();
     
-    // place piece for current player in holder
+    // Find the lowest empty row in this column
+    int dropRow = -1;
+    for (int y = CONNECT4_ROWS - 1; y >= 0; y--) {
+        ChessSquare* target = _grid->getSquare(col, y);
+        if (target && !target->bit()) {
+            dropRow = y;
+            break;
+        }
+    }
 
-    // return true
-    return false;
+    if (dropRow == -1) return false; // Column is full
+
+    ChessSquare* dropSquare = _grid->getSquare(col, dropRow);
+    if (!dropSquare) return false;
+
+    // Create piece for current player
+    Bit* piece = PieceForPlayer(getCurrentPlayer() == getPlayerAt(0) ? 0 : 1);
+    piece->setPosition(dropSquare->getPosition());
+    dropSquare->setBit(piece);
+
+    // Check for win/draw before ending turn
+    Player* winner = checkForWinner();
+    if (winner) {
+        _winner = winner;
+        stopGame();
+        return true;
+    }
+
+    if (checkForDraw()) {
+        stopGame();
+        return true;
+    }
+
+    endTurn();
+    return true;
 }
 
 bool Connect4::canBitMoveFrom(Bit &bit, BitHolder &src) {
-    // implement for piece animation
+    // Pieces in Connect4 can't be picked up and moved; moves are through actionForEmptyHolder only
     return false;
 }
 
 bool Connect4::canBitMoveFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
-    // implement for piece animation
+    // Pieces in Connect4 can't be picked up and moved; moves are through actionForEmptyHolder only
     return false;
 }
 
 void Connect4::stopGame()
 {
-    // clear the board
-    // loop the board to destroybit on each square
-}
-
-Player* Connect4::ownerAt(int index ) const
-{
-    // get the bit at the index and return its owner
-    // if not bit return nullptr
-    // return bit->getOwner();
-    return nullptr;
+    // Clear the board - loop through and destroy all bits
+    _grid->forEachSquare([&](ChessSquare* square, int x, int y) {
+        if (square && square->bit()) {
+            square->destroyBit();
+        }
+    });
 }
 
 Player* Connect4::checkForWinner()
 {
-    // check each winning diagonal / horizontal / vertical
-
-    // iterate diagonals -1 to +1 of the main diagonal
-    // for each diagonal, check for 4 in a row for each player
-
-    // iterate horizontals
-    // for each horizontal, check for 4 in a row for each player
-
-    // iterate verticals
-    // for each vertical, check for 4 in a row for each player
-
-    // if found, return the winning player
+    // Check horizontal, vertical, and both diagonals for 4 in a row
+    
+    // Check horizontal
+    for (int y = 0; y < CONNECT4_ROWS; y++) {
+        for (int x = 0; x < CONNECT4_COLS - 3; x++) {
+            Bit* b1 = _grid->getSquare(x, y)->bit();
+            Bit* b2 = _grid->getSquare(x + 1, y)->bit();
+            Bit* b3 = _grid->getSquare(x + 2, y)->bit();
+            Bit* b4 = _grid->getSquare(x + 3, y)->bit();
+            
+            if (b1 && b2 && b3 && b4 && 
+                b1->getOwner() == b2->getOwner() && 
+                b2->getOwner() == b3->getOwner() && 
+                b3->getOwner() == b4->getOwner()) {
+                return b1->getOwner();
+            }
+        }
+    }
+    
+    // Check vertical
+    for (int y = 0; y < CONNECT4_ROWS - 3; y++) {
+        for (int x = 0; x < CONNECT4_COLS; x++) {
+            Bit* b1 = _grid->getSquare(x, y)->bit();
+            Bit* b2 = _grid->getSquare(x, y + 1)->bit();
+            Bit* b3 = _grid->getSquare(x, y + 2)->bit();
+            Bit* b4 = _grid->getSquare(x, y + 3)->bit();
+            
+            if (b1 && b2 && b3 && b4 && 
+                b1->getOwner() == b2->getOwner() && 
+                b2->getOwner() == b3->getOwner() && 
+                b3->getOwner() == b4->getOwner()) {
+                return b1->getOwner();
+            }
+        }
+    }
+    
+    // Check diagonal (top-left to bottom-right)
+    for (int y = 0; y < CONNECT4_ROWS - 3; y++) {
+        for (int x = 0; x < CONNECT4_COLS - 3; x++) {
+            Bit* b1 = _grid->getSquare(x, y)->bit();
+            Bit* b2 = _grid->getSquare(x + 1, y + 1)->bit();
+            Bit* b3 = _grid->getSquare(x + 2, y + 2)->bit();
+            Bit* b4 = _grid->getSquare(x + 3, y + 3)->bit();
+            
+            if (b1 && b2 && b3 && b4 && 
+                b1->getOwner() == b2->getOwner() && 
+                b2->getOwner() == b3->getOwner() && 
+                b3->getOwner() == b4->getOwner()) {
+                return b1->getOwner();
+            }
+        }
+    }
+    
+    // Check diagonal (top-right to bottom-left)
+    for (int y = 0; y < CONNECT4_ROWS - 3; y++) {
+        for (int x = 3; x < CONNECT4_COLS; x++) {
+            Bit* b1 = _grid->getSquare(x, y)->bit();
+            Bit* b2 = _grid->getSquare(x - 1, y + 1)->bit();
+            Bit* b3 = _grid->getSquare(x - 2, y + 2)->bit();
+            Bit* b4 = _grid->getSquare(x - 3, y + 3)->bit();
+            
+            if (b1 && b2 && b3 && b4 && 
+                b1->getOwner() == b2->getOwner() && 
+                b2->getOwner() == b3->getOwner() && 
+                b3->getOwner() == b4->getOwner()) {
+                return b1->getOwner();
+            }
+        }
+    }
+    
     return nullptr;
 }
 
 bool Connect4::checkForDraw()
 {
-    // if there's a winner, it's not a draw
-    // check if board is full
-    // if any square is empty, it's not a draw yet
-    return false;
-    // return true if board is full with no winner
+    // Check if board is full with no winner
+    for (int x = 0; x < CONNECT4_COLS; x++) {
+        ChessSquare* topSquare = _grid->getSquare(x, 0);
+        if (topSquare && !topSquare->bit()) {
+            return false; // Found an empty square, not a draw yet
+        }
+    }
+    
+    // Board is full and no winner found (checked before this is called)
+    return true;
 }
 
 std::string Connect4::initialStateString()
@@ -114,67 +194,210 @@ std::string Connect4::initialStateString()
     {
         state += "0"; // Initialize each position as empty (represented by '0')
     }
-
-    // state should be a string of 42 zeros
     return state;
 }
 
 std::string Connect4::stateString()
 {
-    // loop through the grid and build a string representation of the board
-    // for each square, append '0' for empty, '1' for player 1, '2' for player 2
-
-    // check for case of ai is player 1 or 2 and swap the representation accordingly
-    // return the resulting string
-    return "";
+    std::string state = "";
+    for (int y = 0; y < CONNECT4_ROWS; y++) {
+        for (int x = 0; x < CONNECT4_COLS; x++) {
+            ChessSquare* square = _grid->getSquare(x, y);
+            if (square && square->bit()) {
+                // '1' for player 0 (red), '2' for player 1 (yellow)
+                Player* owner = square->bit()->getOwner();
+                if (owner == getPlayerAt(0)) {
+                    state += "1";
+                } else {
+                    state += "2";
+                }
+            } else {
+                state += "0";
+            }
+        }
+    }
+    return state;
 }
 
 void Connect4::setStateString(const std::string &s)
 {
-    // for each character in the string, set the corresponding square in the grid
-    // '0' = empty, '1' = player 1 piece, '2
-    // create piece for player and set in holder
-    return;
+    // Clear board
+    stopGame();
+    
+    // Recreate board from state string
+    int index = 0;
+    for (int y = 0; y < CONNECT4_ROWS && index < s.length(); y++) {
+        for (int x = 0; x < CONNECT4_COLS && index < s.length(); x++) {
+            ChessSquare* square = _grid->getSquare(x, y);
+            if (square) {
+                char c = s[index];
+                if (c == '1' || c == '2') {
+                    int playerNum = (c == '1') ? 0 : 1;
+                    Bit* piece = PieceForPlayer(playerNum);
+                    piece->setPosition(square->getPosition());
+                    square->setBit(piece);
+                }
+            }
+            index++;
+        }
+    }
 }
 
 void Connect4::updateAI()
 {
-    // implement a simple AI for Connect4 using minimax or negamax algorithm
-    return;
+    // Simple AI: use negamax to find best move
+    std::string state = stateString();
+    int depth = 6; // Search depth
+    int bestScore = INT_MIN;
+    _bestMoveColumn = 0;
+
+    // Try each column
+    for (int col = 0; col < CONNECT4_COLS; col++) {
+        // Check if column is full
+        ChessSquare* topSquare = _grid->getSquare(col, 0);
+        if (topSquare && topSquare->bit()) continue; // Column full
+
+        // Make move in state string
+        std::string testState = state;
+        bool moved = false;
+        for (int y = CONNECT4_ROWS - 1; y >= 0; y--) {
+            int index = y * CONNECT4_COLS + col;
+            if (index < testState.length() && testState[index] == '0') {
+                testState[index] = '2'; // AI is player 2 (yellow)
+                moved = true;
+                break;
+            }
+        }
+
+        if (!moved) continue;
+
+        // Evaluate position
+        int score = -negamax(testState, depth - 1, -1); // Switch to opponent perspective
+        if (score > bestScore) {
+            bestScore = score;
+            _bestMoveColumn = col;
+        }
+    }
 }
 
 bool Connect4::gameHasAI()
 {
-    // check if any player is an AI player
-    return true;
+    // Check if current player is AI (player 2 = yellow = AI)
+    return getCurrentPlayer() == getPlayerAt(1);
 }
 
 bool Connect4::aiTestForTerminalState(std::string &state, Player *&winner)
 {
-    // get the npos of '0' in the state string
-    // if npos is std::string::npos then board is full
-    return false;
+    // Check if board is full
+    if (state.find('0') == std::string::npos) {
+        return true; // Terminal state: draw
+    }
+
+    // Check for winner by analyzing state string
+    // Reconstruct board piece positions and check
+    for (int y = 0; y < CONNECT4_ROWS; y++) {
+        for (int x = 0; x < CONNECT4_COLS - 3; x++) {
+            int idx = y * CONNECT4_COLS;
+            char b1 = state[idx + x];
+            char b2 = state[idx + x + 1];
+            char b3 = state[idx + x + 2];
+            char b4 = state[idx + x + 3];
+            if (b1 != '0' && b1 == b2 && b2 == b3 && b3 == b4) {
+                winner = (b1 == '1') ? getPlayerAt(0) : getPlayerAt(1);
+                return true;
+            }
+        }
+    }
+
+    // Check vertical
+    for (int y = 0; y < CONNECT4_ROWS - 3; y++) {
+        for (int x = 0; x < CONNECT4_COLS; x++) {
+            int idx1 = y * CONNECT4_COLS + x;
+            int idx2 = (y + 1) * CONNECT4_COLS + x;
+            int idx3 = (y + 2) * CONNECT4_COLS + x;
+            int idx4 = (y + 3) * CONNECT4_COLS + x;
+            char b1 = state[idx1];
+            char b2 = state[idx2];
+            char b3 = state[idx3];
+            char b4 = state[idx4];
+            if (b1 != '0' && b1 == b2 && b2 == b3 && b3 == b4) {
+                winner = (b1 == '1') ? getPlayerAt(0) : getPlayerAt(1);
+                return true;
+            }
+        }
+    }
+
+    // Check diagonals (similar pattern)
+    return false; // Not terminal
 }
 
 int Connect4::aiBoardEvaluation(const std::string& state)
 {
-    // chec for winner
-    // check if player 1 has won return positive score
-    // check if player 2 has won return negative score
-    return 0;
+    Player* winner = nullptr;
+    std::string mutableState = state;
+    
+    if (aiTestForTerminalState(mutableState, winner)) {
+        if (!winner) return 0; // Draw
+        return (winner == getPlayerAt(1)) ? 1000 : -1000; // AI or opponent win
+    }
+
+    // Simple heuristic: count potential threats
+    int score = 0;
+    
+    // Check for 3-in-a-row patterns (dangerous positions)
+    for (int y = 0; y < CONNECT4_ROWS; y++) {
+        for (int x = 0; x < CONNECT4_COLS - 2; x++) {
+            int idx = y * CONNECT4_COLS;
+            if (state[idx + x] == '2' && state[idx + x + 1] == '2' && state[idx + x + 2] == '2') {
+                score += 10; // AI has 3-in-a-row
+            }
+            if (state[idx + x] == '1' && state[idx + x + 1] == '1' && state[idx + x + 2] == '1') {
+                score -= 10; // Opponent has 3-in-a-row
+            }
+        }
+    }
+    
+    return score;
 }
 
 int Connect4::negamax(std::string& state, int depth, int playerColor)
 {
-    // check for winner or draw
-    // if terminal state return evaluation score
+    Player* winner = nullptr;
+    bool isTerminal = aiTestForTerminalState(state, winner);
+    
+    if (isTerminal) {
+        if (!winner) return 0; // Draw
+        return (playerColor == 1) ? 1000 : -1000;
+    }
 
-    // for each possible move
-    // make the move
-    // call negamax recursively with increased depth and switched player color
-    // undo the move
+    if (depth == 0) {
+        return aiBoardEvaluation(state);
+    }
 
-    // based on scores return the best move
-    return;
+    int maxScore = INT_MIN;
+
+    // Try each column
+    for (int col = 0; col < CONNECT4_COLS; col++) {
+        // Check if column is full
+        if (state[col] != '0') continue;
+
+        // Make move
+        std::string newState = state;
+        bool moved = false;
+        for (int y = CONNECT4_ROWS - 1; y >= 0; y--) {
+            int index = y * CONNECT4_COLS + col;
+            if (newState[index] == '0') {
+                newState[index] = (playerColor == 1) ? '2' : '1';
+                moved = true;
+                break;
+            }
+        }
+
+        if (!moved) continue;
+
+        int score = -negamax(newState, depth - 1, -playerColor);
+        maxScore = (score > maxScore) ? score : maxScore;
+    }
+
+    return (maxScore == INT_MIN) ? 0 : maxScore;
 }
-

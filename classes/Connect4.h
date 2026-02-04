@@ -29,7 +29,6 @@ private:
     Grid*       _grid;
     int         _bestMoveColumn;  // For AI: stores best column from negamax
     Bit*        PieceForPlayer(const int playerNumber);
-    Player*     ownerAt(int index ) const;
     bool        aiTestForTerminalState(std::string& state, Player*& winner);
     int         aiBoardEvaluation(const std::string& state);
     int         negamax(std::string& state, int depth, int playerColor);
