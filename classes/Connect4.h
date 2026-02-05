@@ -13,6 +13,7 @@ public:
     bool canBitMoveFrom(Bit &bit, BitHolder &src) override;
     bool canBitMoveFromTo(Bit &bit, BitHolder &src, BitHolder &dst) override;
     void stopGame() override;
+    Player* isWinner(ChessSquare* s1, ChessSquare* s2, ChessSquare* s3, ChessSquare* s4);
     Player* checkForWinner() override;
     bool checkForDraw() override;
     
@@ -31,7 +32,8 @@ public:
     int getBestMoveColumn() const { return _bestMoveColumn; }
     void setAIPlayer(int playerNumber, bool isAI);
     
-    // AI evaluation methods
+    // AI evaluation method
+    bool aiIsWinner(const std::string &state, int pos1, int pos2, int pos3, int pos4, Player *&winner);
     bool aiTestForTerminalState(std::string &state, Player *&winner);
     int negamax(std::string &state, int depth, int playerColor, char aiChar, char opponentChar);
     int aiBoardEvaluation(const std::string &state, char aiChar, char opponentChar);

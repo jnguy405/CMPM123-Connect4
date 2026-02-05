@@ -101,76 +101,83 @@ void Connect4::stopGame()
     }
 }
 
+// Check for winner helper function
+Player* Connect4::isWinner(ChessSquare* s1, ChessSquare* s2, ChessSquare* s3, ChessSquare* s4)
+{
+    if (s1 && s2 && s3 && s4) {
+        Bit* b1 = s1->bit();
+        Bit* b2 = s2->bit();
+        Bit* b3 = s3->bit();
+        Bit* b4 = s4->bit();
+
+        if (b1 && b2 && b3 && b4 &&
+            b1->getOwner() == b2->getOwner() &&
+            b2->getOwner() == b3->getOwner() &&
+            b3->getOwner() == b4->getOwner()) {
+            return b1->getOwner();
+        }
+    }
+    return nullptr;
+}
+
 Player* Connect4::checkForWinner()
 {
     if (!_grid) return nullptr;
     
     // Check horizontal, vertical, and both diagonals for 4 in a row
-    
-    // Check horizontal
+
+    // Check horizontal (using getE)
     for (int y = 0; y < CONNECT4_ROWS; y++) {
         for (int x = 0; x < CONNECT4_COLS - 3; x++) {
-            Bit* b1 = _grid->getSquare(x, y)->bit();
-            Bit* b2 = _grid->getSquare(x + 1, y)->bit();
-            Bit* b3 = _grid->getSquare(x + 2, y)->bit();
-            Bit* b4 = _grid->getSquare(x + 3, y)->bit();
+            ChessSquare* s1 = _grid->getSquare(x, y);
+            ChessSquare* s2 = s1 ? _grid->getE(x, y) : nullptr;
+            ChessSquare* s3 = s2 ? _grid->getE(s2->getColumn(), s2->getRow()) : nullptr;
+            ChessSquare* s4 = s3 ? _grid->getE(s3->getColumn(), s3->getRow()) : nullptr;
             
-            if (b1 && b2 && b3 && b4 && 
-                b1->getOwner() == b2->getOwner() && 
-                b2->getOwner() == b3->getOwner() && 
-                b3->getOwner() == b4->getOwner()) {
-                return b1->getOwner();
+            if (isWinner(s1, s2, s3, s4)) {
+                return s1->bit()->getOwner();
             }
         }
     }
     
-    // Check vertical
+    // Check vertical (using getS)
     for (int y = 0; y < CONNECT4_ROWS - 3; y++) {
         for (int x = 0; x < CONNECT4_COLS; x++) {
-            Bit* b1 = _grid->getSquare(x, y)->bit();
-            Bit* b2 = _grid->getSquare(x, y + 1)->bit();
-            Bit* b3 = _grid->getSquare(x, y + 2)->bit();
-            Bit* b4 = _grid->getSquare(x, y + 3)->bit();
+            ChessSquare* s1 = _grid->getSquare(x, y);
+            ChessSquare* s2 = s1 ? _grid->getS(x, y) : nullptr;
+            ChessSquare* s3 = s2 ? _grid->getS(s2->getColumn(), s2->getRow()) : nullptr;
+            ChessSquare* s4 = s3 ? _grid->getS(s3->getColumn(), s3->getRow()) : nullptr;
             
-            if (b1 && b2 && b3 && b4 && 
-                b1->getOwner() == b2->getOwner() && 
-                b2->getOwner() == b3->getOwner() && 
-                b3->getOwner() == b4->getOwner()) {
-                return b1->getOwner();
+            if (isWinner(s1, s2, s3, s4)) {
+                return s1->bit()->getOwner();
             }
         }
     }
     
-    // Check diagonal (top-left to bottom-right)
+    // Check diagonal (using getBR: top left -> bottom-right)
     for (int y = 0; y < CONNECT4_ROWS - 3; y++) {
         for (int x = 0; x < CONNECT4_COLS - 3; x++) {
-            Bit* b1 = _grid->getSquare(x, y)->bit();
-            Bit* b2 = _grid->getSquare(x + 1, y + 1)->bit();
-            Bit* b3 = _grid->getSquare(x + 2, y + 2)->bit();
-            Bit* b4 = _grid->getSquare(x + 3, y + 3)->bit();
+            ChessSquare* s1 = _grid->getSquare(x, y);
+            ChessSquare* s2 = s1 ? _grid->getBR(x, y) : nullptr;
+            ChessSquare* s3 = s2 ? _grid->getBR(s2->getColumn(), s2->getRow()) : nullptr;
+            ChessSquare* s4 = s3 ? _grid->getBR(s3->getColumn(), s3->getRow()) : nullptr;
             
-            if (b1 && b2 && b3 && b4 && 
-                b1->getOwner() == b2->getOwner() && 
-                b2->getOwner() == b3->getOwner() && 
-                b3->getOwner() == b4->getOwner()) {
-                return b1->getOwner();
+            if (isWinner(s1, s2, s3, s4)) {
+                return s1->bit()->getOwner();
             }
         }
     }
     
-    // Check diagonal (top-right to bottom-left)
+    // Check diagonal (using getBL: top-right -> bottom-left)
     for (int y = 0; y < CONNECT4_ROWS - 3; y++) {
         for (int x = 3; x < CONNECT4_COLS; x++) {
-            Bit* b1 = _grid->getSquare(x, y)->bit();
-            Bit* b2 = _grid->getSquare(x - 1, y + 1)->bit();
-            Bit* b3 = _grid->getSquare(x - 2, y + 2)->bit();
-            Bit* b4 = _grid->getSquare(x - 3, y + 3)->bit();
+            ChessSquare* s1 = _grid->getSquare(x, y);
+            ChessSquare* s2 = s1 ? _grid->getBL(x, y) : nullptr;
+            ChessSquare* s3 = s2 ? _grid->getBL(s2->getColumn(), s2->getRow()) : nullptr;
+            ChessSquare* s4 = s3 ? _grid->getBL(s3->getColumn(), s3->getRow()) : nullptr;
             
-            if (b1 && b2 && b3 && b4 && 
-                b1->getOwner() == b2->getOwner() && 
-                b2->getOwner() == b3->getOwner() && 
-                b3->getOwner() == b4->getOwner()) {
-                return b1->getOwner();
+            if (isWinner(s1, s2, s3, s4)) {
+                return s1->bit()->getOwner();
             }
         }
     }
@@ -209,21 +216,19 @@ std::string Connect4::stateString()
     std::string state = "";
     if (!_grid) return state;
     
-    for (int y = 0; y < CONNECT4_ROWS; y++) {
-        for (int x = 0; x < CONNECT4_COLS; x++) {
-            ChessSquare* square = _grid->getSquare(x, y);
-            if (square && square->bit()) {
-                Player* owner = square->bit()->getOwner();
-                if (owner == getPlayerAt(0)) {
-                    state += "1";
-                } else {
-                    state += "2";
-                }
+    _grid->forEachSquare([&](ChessSquare* square, int x, int y) {
+        if (square && square->bit()) {
+            Player* owner = square->bit()->getOwner();
+            if (owner == getPlayerAt(0)) {
+                state += "1";
             } else {
-                state += "0";
+                state += "2";
             }
+        } else {
+            state += "0";
         }
-    }
+    });
+    
     return state;
 }
 
@@ -253,7 +258,30 @@ void Connect4::setStateString(const std::string &s)
     }
 }
 
+// -----------------------------------------------------------------------------
 // AI Methods
+// -----------------------------------------------------------------------------
+
+// AI helper: check if 4 positions form a winning line in state string
+bool Connect4::aiIsWinner(const std::string &state, int pos1, int pos2, int pos3, int pos4, Player *&winner)
+{
+    if (pos1 >= 0 && pos1 < state.length() &&
+        pos2 >= 0 && pos2 < state.length() &&
+        pos3 >= 0 && pos3 < state.length() &&
+        pos4 >= 0 && pos4 < state.length()) {
+        
+        char b1 = state[pos1];
+        char b2 = state[pos2];
+        char b3 = state[pos3];
+        char b4 = state[pos4];
+        
+        if (b1 != '0' && b1 == b2 && b2 == b3 && b3 == b4) {
+            winner = (b1 == '1') ? getPlayerAt(0) : getPlayerAt(1);
+            return true;
+        }
+    }
+    return false;
+}
 
 bool Connect4::aiTestForTerminalState(std::string &state, Player *&winner)
 {
@@ -262,70 +290,53 @@ bool Connect4::aiTestForTerminalState(std::string &state, Player *&winner)
         return true;
     }
 
-    // Check for winner
+    // Check horizontal (right)
     for (int y = 0; y < CONNECT4_ROWS; y++) {
         for (int x = 0; x < CONNECT4_COLS - 3; x++) {
-            int pos = y * CONNECT4_COLS;
-            char b1 = state[pos + x];
-            char b2 = state[pos + x + 1];
-            char b3 = state[pos + x + 2];
-            char b4 = state[pos + x + 3];
-            if (b1 != '0' && b1 == b2 && b2 == b3 && b3 == b4) {
-                winner = (b1 == '1') ? getPlayerAt(0) : getPlayerAt(1);
+            int pos1 = y * CONNECT4_COLS + x;
+            int pos2 = pos1 + 1;
+            int pos3 = pos1 + 2;
+            int pos4 = pos1 + 3;
+            if (aiIsWinner(state, pos1, pos2, pos3, pos4, winner)) {
                 return true;
             }
         }
     }
 
-    // Check vertical
+    // Check vertical (down)
     for (int y = 0; y < CONNECT4_ROWS - 3; y++) {
         for (int x = 0; x < CONNECT4_COLS; x++) {
             int pos1 = y * CONNECT4_COLS + x;
-            int pos = (y + 1) * CONNECT4_COLS + x;
-            int pos3 = (y + 2) * CONNECT4_COLS + x;
-            int pos4 = (y + 3) * CONNECT4_COLS + x;
-            char b1 = state[pos1];
-            char b2 = state[pos];
-            char b3 = state[pos3];
-            char b4 = state[pos4];
-            if (b1 != '0' && b1 == b2 && b2 == b3 && b3 == b4) {
-                winner = (b1 == '1') ? getPlayerAt(0) : getPlayerAt(1);
+            int pos2 = pos1 + CONNECT4_COLS;
+            int pos3 = pos2 + CONNECT4_COLS;
+            int pos4 = pos3 + CONNECT4_COLS;
+            if (aiIsWinner(state, pos1, pos2, pos3, pos4, winner)) {
                 return true;
             }
         }
     }
 
-    // Check diagonal (top-left to bottom-right)
+    // Check diagonal (top-left -> bottom-right)
     for (int y = 0; y < CONNECT4_ROWS - 3; y++) {
         for (int x = 0; x < CONNECT4_COLS - 3; x++) {
             int pos1 = y * CONNECT4_COLS + x;
-            int pos = (y + 1) * CONNECT4_COLS + (x + 1);
-            int pos3 = (y + 2) * CONNECT4_COLS + (x + 2);
-            int pos4 = (y + 3) * CONNECT4_COLS + (x + 3);
-            char b1 = state[pos1];
-            char b2 = state[pos];
-            char b3 = state[pos3];
-            char b4 = state[pos4];
-            if (b1 != '0' && b1 == b2 && b2 == b3 && b3 == b4) {
-                winner = (b1 == '1') ? getPlayerAt(0) : getPlayerAt(1);
+            int pos2 = pos1 + CONNECT4_COLS + 1;
+            int pos3 = pos2 + CONNECT4_COLS + 1;
+            int pos4 = pos3 + CONNECT4_COLS + 1;
+            if (aiIsWinner(state, pos1, pos2, pos3, pos4, winner)) {
                 return true;
             }
         }
     }
 
-    // Check diagonal (top-right to bottom-left)
+    // Check diagonal (top-right -> bottom-left)
     for (int y = 0; y < CONNECT4_ROWS - 3; y++) {
         for (int x = 3; x < CONNECT4_COLS; x++) {
             int pos1 = y * CONNECT4_COLS + x;
-            int pos = (y + 1) * CONNECT4_COLS + (x - 1);
-            int pos3 = (y + 2) * CONNECT4_COLS + (x - 2);
-            int pos4 = (y + 3) * CONNECT4_COLS + (x - 3);
-            char b1 = state[pos1];
-            char b2 = state[pos];
-            char b3 = state[pos3];
-            char b4 = state[pos4];
-            if (b1 != '0' && b1 == b2 && b2 == b3 && b3 == b4) {
-                winner = (b1 == '1') ? getPlayerAt(0) : getPlayerAt(1);
+            int pos2 = pos1 + CONNECT4_COLS - 1;
+            int pos3 = pos2 + CONNECT4_COLS - 1;
+            int pos4 = pos3 + CONNECT4_COLS - 1;
+            if (aiIsWinner(state, pos1, pos2, pos3, pos4, winner)) {
                 return true;
             }
         }
