@@ -62,19 +62,6 @@ bool Connect4::actionForEmptyHolder(BitHolder &holder) {
     piece->setPosition(dropSquare->getPosition());
     dropSquare->setBit(piece);
 
-    // Check for win/draw before ending turn
-    Player* winner = checkForWinner();
-    if (winner) {
-        _winner = winner;
-        stopGame();
-        return true;
-    }
-
-    if (checkForDraw()) {
-        stopGame();
-        return true;
-    }
-
     endTurn();
     return true;
 }

@@ -295,8 +295,8 @@ namespace ClassGame {
         // Game Window
         ImGui::Begin("Game Window", &GameWin, ImGuiWindowFlags_NoScrollbar);
         if (game) {
-            // Handle AI moves if it's an AI turn
-            if (game->gameHasAI() && game->getCurrentPlayer() && game->getCurrentPlayer()->isAIPlayer()) {
+            // Handle AI moves if it's an AI turn (only if game is not over)
+            if (!gameOver && game->gameHasAI() && game->getCurrentPlayer() && game->getCurrentPlayer()->isAIPlayer()) {
                 game->updateAI();
             }
             
@@ -305,7 +305,7 @@ namespace ClassGame {
             
             // Game-specific additional info
             Connect4* connect4Game = dynamic_cast<Connect4*>(game);
-            if (connect4Game && connect4Game->gameHasAI() && 
+            if (connect4Game && !gameOver && connect4Game->gameHasAI() && 
                 game->getCurrentPlayer() && game->getCurrentPlayer()->isAIPlayer()) {
                 ImGui::Separator();
                 ImGui::Text("AI Analysis:");
@@ -570,46 +570,51 @@ namespace ClassGame {
     void EndOfTurn() {
         if (!game) return;
         
+        // Increment action counter
+        gameActCounter++;
+        
         // Check for winner or draw
         Player *winner = game->checkForWinner();
         if (winner) {
-            gameOver = true;
             gameWinner = winner->playerNumber() + 1;
             LOG_INFO_TAG("Game Over! Winner: Player " + std::to_string(gameWinner), "GAME");
-        } else if (game->checkForDraw()) {
+            game->stopGame();
             gameOver = true;
+            return;
+        } 
+        
+        if (game->checkForDraw()) {
             gameWinner = -1;
             LOG_INFO_TAG("Game Over! It's a draw.", "GAME");
+            game->stopGame();
+            gameOver = true;
+            return;
         }
         
-        // Increment action counter and log
-        gameActCounter++;
-        if (!gameOver) {
-            // Log the state string after the move
-            // Note: getCurrentPlayer() has already switched, so we need the previous player
-            int previousPlayerNum = (game->getCurrentPlayer()->playerNumber() + 1) % 2 + 1;
-            std::string state = game->stateString();
-            
-            // Log AI move information if it was AI's turn
-            bool wasAITurn = game->getPlayerAt(previousPlayerNum - 1)->isAIPlayer();
-            
-            if (wasAITurn) {
-                Connect4* connect4Game = dynamic_cast<Connect4*>(game);
-                if (connect4Game) {
-                    int bestMove = connect4Game->getBestMoveColumn();
-                    LOG_INFO_TAG("AI (Player " + std::to_string(previousPlayerNum) + 
-                                ") chose column: " + std::to_string(bestMove), "AI");
-                } else {
-                    LOG_INFO_TAG("AI (Player " + std::to_string(previousPlayerNum) + 
-                                ") made a move", "AI");
-                }
+        // Log the state string after the move (only if game didn't end)
+        // Note: getCurrentPlayer() has already switched, so we need the previous player
+        int previousPlayerNum = (game->getCurrentPlayer()->playerNumber() + 1) % 2 + 1;
+        std::string state = game->stateString();
+        
+        // Log AI move information if it was AI's turn
+        bool wasAITurn = game->getPlayerAt(previousPlayerNum - 1)->isAIPlayer();
+        
+        if (wasAITurn) {
+            Connect4* connect4Game = dynamic_cast<Connect4*>(game);
+            if (connect4Game) {
+                int bestMove = connect4Game->getBestMoveColumn();
+                LOG_INFO_TAG("AI (Player " + std::to_string(previousPlayerNum) + 
+                            ") chose column: " + std::to_string(bestMove), "AI");
+            } else {
+                LOG_INFO_TAG("AI (Player " + std::to_string(previousPlayerNum) + 
+                            ") made a move", "AI");
             }
-            
-            LOG_INFO_TAG("End of turn #" + std::to_string(gameActCounter) + 
-                        " | Player: " + std::to_string(previousPlayerNum) +
-                        (wasAITurn ? " (AI)" : "") +
-                        " | Board State: " + state, 
-                        "GAME");
         }
+        
+        LOG_INFO_TAG("End of turn #" + std::to_string(gameActCounter) + 
+                    " | Player: " + std::to_string(previousPlayerNum) +
+                    (wasAITurn ? " (AI)" : "") +
+                    " | Board State: " + state, 
+                    "GAME");
     }
 }
