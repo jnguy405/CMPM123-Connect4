@@ -112,6 +112,9 @@ Player* Connect4::checkForWinner()
     if (!_grid) return nullptr;
     
     // Check horizontal, vertical, and both diagonals for 4 in a row
+    // Other ways:
+    // Bit board
+    // marching approach using Grid directional helpers
 
     // Check horizontal (using getE)
     for (int y = 0; y < CONNECT4_ROWS; y++) {

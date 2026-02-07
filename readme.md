@@ -1,11 +1,12 @@
-Using the provided code that can be downloaded from this github add a new class that inherits from game.cpp in the same way TicTacToe.cpp does and implement a working version of the game Connect 4. The game should be added as a fourth choice from the menu so the choices are Tic Tac Toe, Checkers, Othello and now Connect 4.
+# CMPM123 Connect 4
 
-The game must be playable by both by 2 people and vs. an AI. Your implementation must check for the winning condition, and display that on the right hand side the same way the current setup does for tic-tac-toe. The stopGame() method is expected to clean up and delete any memory allocated.
+## Overview
 
-Look at the new Grid.cpp class and see how it is used in Checkers.cpp for a good understanding about laying out a useable grid.
+My Connect 4 implementation features an AI opponent using negamax algorithm for decision-making, and support for human vs human, human vs AI, and AI vs AI gameplay modes. The game detects horizontal, vertical, and diagonal winning conditions using directional helper methods from the Grid class, with comprehensive logging of all game states and moves.
 
-For extra credit, when a game piece is added to the board, make it animate into place instead of just appearing in it's final spot.
+---
+## Citations & References
 
-Graphic files are provided for the game pieces called yellow.png and red.png.
-
-For the submission, create a new github based on the above code-base and provide a link to that along with a complete readme.md on how your implementation works.
+1. [ImGui](https://github.com/ocornut/imgui/tree/docking)
+2. [ImGui Console Usage](https://github.com/rmxbalanque/imgui-console/blob/master/example/src/example_main.cpp)
+3. [Original Repository - Devine](https://github.com/gdevine-ucsc/connect-4-123)
