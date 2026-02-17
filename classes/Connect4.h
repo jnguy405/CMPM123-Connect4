@@ -1,5 +1,6 @@
 #pragma once
 #include "Game.h"
+#include <cstdint>
 
 class Connect4 : public Game
 {
@@ -13,7 +14,6 @@ public:
     bool canBitMoveFrom(Bit &bit, BitHolder &src) override;
     bool canBitMoveFromTo(Bit &bit, BitHolder &src, BitHolder &dst) override;
     void stopGame() override;
-    Player* isWinner(ChessSquare* s1, ChessSquare* s2, ChessSquare* s3, ChessSquare* s4);
     Player* checkForWinner() override;
     bool checkForDraw() override;
     
@@ -33,14 +33,24 @@ public:
     void setAIPlayer(int playerNumber, bool isAI);
     
     // AI evaluation method
-    bool aiIsWinner(const std::string &state, int pos1, int pos2, int pos3, int pos4, Player *&winner);
     bool aiTestForTerminalState(std::string &state, Player *&winner);
-    int negamax(std::string &state, int depth, int playerColor, char aiChar, char opponentChar);
+    int negamax(std::string &state, int depth, int alpha, int beta, char currentChar, char aiChar, char opponentChar);
     int aiBoardEvaluation(const std::string &state, char aiChar, char opponentChar);
 
 private:
+    struct WinPattern {
+        int stride1;
+        int stride2;
+    };
+    
     Grid *_grid;
     int _bestMoveColumn;
+    uint64_t _boardRed;
+    uint64_t _boardYellow;
+    static const int NUM_PATTERNS = 4;
+    WinPattern _patterns[NUM_PATTERNS];
     
     Bit* PieceForPlayer(const int playerNumber);
+    uint64_t boardToBitboard(const std::string& state, char player);
+    bool checkWinShift(uint64_t board);
 };

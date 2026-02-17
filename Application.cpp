@@ -578,6 +578,7 @@ namespace ClassGame {
         if (winner) {
             gameWinner = winner->playerNumber() + 1;
             LOG_INFO_TAG("Game Over! Winner: Player " + std::to_string(gameWinner), "GAME");
+            LOG_INFO_TAG("Final State: " + std::string(game->stateString()), "GAME");
             game->stopGame();
             gameOver = true;
             return;
