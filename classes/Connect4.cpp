@@ -116,6 +116,14 @@ Player* Connect4::checkForWinner()
     // Bit board
     // marching approach using Grid directional helpers
 
+    // Bit Board AND (&&) winning combos check 
+    // Convert player positions to bit boards uint64_t
+    // Compare && with combos true/false
+    // Return state-mask-thing
+    // bit shifting / strides needed to check each direction
+    // vert, hor, diag + and diag -
+    // 69 win combos (pre-compute the 69 masks)
+
     // Check horizontal (using getE)
     for (int y = 0; y < CONNECT4_ROWS; y++) {
         for (int x = 0; x < CONNECT4_COLS - 3; x++) {
